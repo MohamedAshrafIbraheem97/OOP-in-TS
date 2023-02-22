@@ -1,99 +1,195 @@
 "use strict";
-/**
- * person
- * student extend person
- * teacher extend person
- * course is teacher by teacher
- * course is learned by student
- */
-class User {
-    constructor(name, age, username, password) {
-        this.name = name;
-        this.age = age;
-        this.username = username;
-        this.password = password;
-        this._id = this.idGenrator();
+class Bank {
+    constructor(code, address, accounts) {
+        this._address = address;
+        this._code = code;
+        this._accounts = accounts;
     }
-    idGenrator() {
-        return Date.now();
-    }
-    get id() {
-        return this._id;
-    }
-    getUserType() {
-        console.log("I'm a person");
-    }
-    register() { }
-    login() { }
-    updateInfo() { }
-}
-class Admin extends User {
-    constructor(name, age, username, password) {
-        super(name, age, username, password);
-        this.coursesList = [];
-    }
-    createCourse(newCourse) {
-        this.coursesList.push(newCourse);
-        return this.coursesList;
-    }
-    getUserType() {
-        console.log("I'm an Admin!");
+    getAccounts() {
+        console.log("getting accounts...");
+        return this._accounts;
     }
 }
-class Student extends User {
-    constructor(name, age, username, password, _grade) {
-        super(name, age, username, password);
-        this._grade = _grade;
-        this.grade = this._grade;
-        this.courses = [];
+class Account {
+    get customers() {
+        return this._customers;
     }
-    buyCourse(course) { }
-    set grade(v) {
-        if (v > 0 /* grade.grade7 */ && v <= 5 /* grade.grade12 */) {
-            this._grade = v;
+    set customers(v) {
+        if (v.length <= this.MAX_CUSTOMER_NUMBER &&
+            this.customers.length <= this.MAX_CUSTOMER_NUMBER) {
+            v.forEach((customer) => {
+                this._customers.push(customer);
+            });
         }
         else {
-            this.grade = 0 /* grade.grade7 */;
+            throw new Error("Account can have two customers only!");
         }
     }
-    getUserType() {
-        console.log("I'm a student!");
+    constructor(_balance = 0, customers) {
+        this._balance = _balance;
+        this.MAX_CUSTOMER_NUMBER = 2;
+        this._customers = [];
+        this._accountNumber = this.generateAccountNumber();
+        this.customers = customers;
+    }
+    get accountNumber() {
+        return this._accountNumber;
+    }
+    get balance() {
+        return this._balance;
+    }
+    set balance(v) {
+        this._balance = v;
+    }
+    generateAccountNumber() {
+        return "acc" + Date.now();
+    }
+    deposite(amountToBeDeposited) {
+        try {
+            this.balance += amountToBeDeposited;
+            console.log(`You deposited: ${amountToBeDeposited} EGP`);
+            return true;
+        }
+        catch (e) {
+            throw new Error("An error occured while depositing");
+        }
+    }
+    withdrawWithLimit(amountToBeWithdrawn, WithdrawLimit) {
+        try {
+            if (amountToBeWithdrawn > WithdrawLimit) {
+                return "You exceeded the limit of withdraw operation can't be done!";
+            }
+            else {
+                console.log(`You want to withdraw: ${amountToBeWithdrawn} EGP`);
+                return this.withdrawWithoutLimit(amountToBeWithdrawn);
+            }
+        }
+        catch (error) {
+            throw new Error("An error has hapened while trying to withdraw!");
+        }
+    }
+    withdrawWithoutLimit(amountToBeWithdrawn) {
+        try {
+            if (this.balance < amountToBeWithdrawn) {
+                return `Your balance is not enough because you reuqested ${amountToBeWithdrawn}EGP and your total balance is ${this.balance}EGP`;
+            }
+            this.balance -= amountToBeWithdrawn;
+            return "Thank you for dealing with us, Please take your money.";
+        }
+        catch (e) {
+            throw new Error("An error has hapened while trying to withdraw!");
+        }
     }
 }
-class Teacher extends User {
-    constructor(name, age, username, password, credentials = "teacher") {
-        super(name, age, username, password);
-        this.credentials = credentials;
-        this.courses = [];
+class Customer {
+    get pin() {
+        return this._pin;
     }
-    getUserType() {
-        console.log("I'm a teacher!");
+    set pin(v) {
+        this._pin = v;
     }
-    teachCourse(course) {
-        this.courses.push(course);
+    get account() {
+        return this._account;
     }
-}
-class Course {
-    constructor(name, grade) {
+    set account(v) {
+        this._account = v;
+    }
+    constructor(name, address, dob, account) {
         this.name = name;
-        this.grade = grade;
-        this.coursesList = [];
-        this.enrollments = [];
-        this._code = this.generateCode();
+        this.address = address;
+        this.dob = dob;
+        this._cardNumber = this.generateCardNumber();
+        this._pin = 1111;
+        this._account = account;
     }
-    get code() {
-        return this._code;
+    generateCardNumber() {
+        return "card" + Date.now();
     }
-    generateCode() {
-        return "course" + Date.now();
-    }
-    enrollToCourse(student) {
-        this.enrollments.push(student);
-    }
-    getEnrollments() {
-        return this.enrollments;
+    verifyPassword(enteredPassword) {
+        return enteredPassword === this.pin;
     }
 }
-const admin = new Admin("ahmed", 20, "ahmed", "123");
-const coursesList = admin.createCourse(new Course("cs101", 0 /* grade.grade7 */));
-const ahmed = new Student("ahmed", 20, "ahmed", "123", 0 /* grade.grade7 */);
+class CheckingAccount extends Account {
+    constructor(balance, customers) {
+        super(balance, customers);
+    }
+    withdraw(amountToBeWithdrawn) {
+        try {
+            console.log(super.withdrawWithoutLimit(amountToBeWithdrawn));
+        }
+        catch (e) {
+            throw new Error("An error has hapened while trying to withdraw!");
+        }
+    }
+}
+class SavingAccount extends Account {
+    constructor(balance, customers) {
+        super(balance, customers);
+    }
+    withdraw(amountToBeWithdrawn) {
+        let withdrawLimit = 400;
+        try {
+            console.log(super.withdrawWithLimit(amountToBeWithdrawn, withdrawLimit));
+        }
+        catch (e) {
+            throw new Error("An error has hapened while trying to withdraw!");
+        }
+    }
+    AddInterest() {
+        this.deposite(this.balance * 0.01);
+    }
+}
+class ATM {
+    constructor(location, mangedBy) {
+        this.location = location;
+        this.mangedBy = mangedBy;
+        this.isAuthenticated = false;
+    }
+    login(customer, pin) {
+        if (customer.verifyPassword(pin))
+            this.isAuthenticated = true;
+        else
+            this.isAuthenticated = false;
+        return this.isAuthenticated;
+    }
+    withdraw(customer, amount) {
+        if (customer.account instanceof SavingAccount) {
+            customer.account.withdraw(amount);
+        }
+        else if (customer.account instanceof CheckingAccount) {
+            customer.account.withdraw(amount);
+        }
+    }
+    deposite(customer, amount) {
+        customer.account.deposite(amount);
+    }
+    checkBalance(customer) {
+        console.log(`Your balance is: ${customer.account.balance.toFixed(2)} EGP`);
+    }
+}
+// testing the code
+let accountsList = [];
+let midoAcc = new SavingAccount(200, []);
+let mido = new Customer("mido", "4st @city", new Date(1997, 2, 1), midoAcc);
+midoAcc.customers = [mido];
+let hanaAcc = new SavingAccount(1500, []);
+let hana = new Customer("hana", "4st @city", new Date(1997, 2, 1), hanaAcc);
+hanaAcc.customers = [hana, mido];
+let hemaAcc = new CheckingAccount(200, []);
+let hema = new Customer("hima", "4st @city", new Date(1997, 2, 1), hemaAcc);
+hemaAcc.customers = [hema];
+accountsList.push(midoAcc);
+accountsList.push(hanaAcc);
+accountsList.push(hemaAcc);
+let NBE = new Bank("nbe", "helwan", accountsList);
+let atm1 = new ATM("helwan", NBE);
+let atm2 = new ATM("maadi", NBE);
+console.log(NBE.getAccounts());
+if (atm1.login(mido, 1111)) {
+    atm1.checkBalance(mido);
+    atm1.deposite(mido, 50);
+    atm1.checkBalance(mido);
+    atm1.withdraw(mido, 200);
+    atm1.withdraw(mido, 50);
+    atm1.withdraw(mido, 50);
+}
