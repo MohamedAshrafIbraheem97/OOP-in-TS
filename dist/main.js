@@ -44,10 +44,16 @@ class Account {
     generateAccountNumber() {
         return "acc" + Date.now();
     }
+    transactionsLog(date, type, amount, postBalance) {
+        let log = `Operation was ${type} and it was on ${date} with the amount of ${amount} EGP,
+    and after this operation the balance is ${postBalance} EGP`;
+        return log;
+    }
     deposite(amountToBeDeposited) {
         try {
             this.balance += amountToBeDeposited;
             console.log(`You deposited: ${amountToBeDeposited} EGP`);
+            console.warn(this.transactionsLog(new Date(), "deposite", amountToBeDeposited, this.balance));
             return true;
         }
         catch (e) {
@@ -74,6 +80,7 @@ class Account {
                 return `Your balance is not enough because you reuqested ${amountToBeWithdrawn}EGP and your total balance is ${this.balance}EGP`;
             }
             this.balance -= amountToBeWithdrawn;
+            console.warn(this.transactionsLog(new Date(), "withdraw", amountToBeWithdrawn, this.balance));
             return "Thank you for dealing with us, Please take your money.";
         }
         catch (e) {
@@ -185,11 +192,11 @@ let NBE = new Bank("nbe", "helwan", accountsList);
 let atm1 = new ATM("helwan", NBE);
 let atm2 = new ATM("maadi", NBE);
 console.log(NBE.getAccounts());
-if (atm1.login(mido, 1111)) {
-    atm1.checkBalance(mido);
-    atm1.deposite(mido, 50);
-    atm1.checkBalance(mido);
-    atm1.withdraw(mido, 200);
-    atm1.withdraw(mido, 50);
-    atm1.withdraw(mido, 50);
+if (atm1.login(hema, 1111)) {
+    atm1.checkBalance(hema);
+    atm1.deposite(hema, 50);
+    atm1.checkBalance(hema);
+    atm1.withdraw(hema, 200);
+    atm1.withdraw(hema, 50);
+    atm1.withdraw(hema, 50);
 }
